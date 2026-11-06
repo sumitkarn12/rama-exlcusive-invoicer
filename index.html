@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Generator</title>
+  <!-- Bulma CSS CDN (Latest Version) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts: Inter -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <!-- jsPDF and jsPDF-AutoTable CDNs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+
+  <!-- Header Hero Banner -->
+  <section class="hero is-link is-bold no-print">
+    <div class="hero-body py-4">
+      <div class="container is-fluid">
+        <div class="level mb-0">
+          <div class="level-left">
+            <div class="level-item">
+              <span class="icon is-large mr-3">
+                <i class="fa-solid fa-receipt fa-2x"></i>
+              </span>
+              <div>
+                <h1 class="title is-4 mb-1">Rama Exclusive</h1>
+                <p class="subtitle is-7 has-text-link-light">Get your invoice</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Container -->
+  <section class="section py-5" id="main">
+    <div class="container">
+      <!-- Search invoice -->
+      <div class="card mb-4">
+        <header class="card-header">
+          <p class="card-header-title py-3">
+            <span class="icon has-text-link mr-2"><i class="fa-solid fa-store"></i></span>
+            Invoice number
+          </p>
+        </header>
+        <div class="card-content py-4">
+          <form action="#" id="invoice-form">
+            <div class="field">
+              <div class="control">
+                <input class="input is-small" type="text" id="invoice_nr" value="" placeholder="20261101S5962" required >
+              </div>
+            </div>
+            <button class="button is-small is-link">
+              <span>Get invoice</span>
+            </button>
+          </form>
+
+          <div class="container mt-5">
+            <!-- Invoice search history -->
+            <div class="buttons are-small" id="search-history"></div>
+          </div>
+        </div>
+
+
+      </div>
+
+      <div id="paperPreview" class="paper-preview p-5 is-hidden">
+
+        <!-- Header Section -->
+        <div class="has-text-centered border-bottom pb-4 mb-4">
+          <h2 class="title is-4 mb-1 uppercase" id="previewStoreName"></h2>
+          <p class="is-size-7 has-text-grey" id="previewStoreAddress"></p>
+          <p class="is-size-7 has-text-grey">Phone: <span id="previewStorePhone"></span></p>
+          <p class="is-size-7 has-text-grey">Email: <span id="previewStoreEmail"></span></p>
+          <p class="is-size-7 has-text-grey">GSTIN: <span id="previewStoreGstin"></span></p>
+        </div>
+
+        <!-- Invoice Info Block -->
+        <div class="columns is-mobile is-vcentered mb-3 border-bottom pb-3">
+          <div class="column">
+            <p class="is-size-7">
+              <strong>Invoice:</strong>
+              <span id="previewInvoiceId" class="mono-font"></span>
+            </p>
+            <p class="is-size-7"><strong>Date:</strong> <span id="previewInvoiceDate"></span></p>
+          </div>
+          <div class="column has-text-right">
+            <p class="is-size-7"><strong>Customer:</strong> <span id="previewCustName"></span></p>
+            <p class="is-size-7"><strong>Phone:</strong> <span id="previewCustPhone"></span></p>
+          </div>
+        </div>
+
+        <!-- Line Items Table -->
+        <table class="table is-fullwidth is-narrow is-striped my-4">
+          <thead>
+            <tr class="is-size-7">
+              <th>Item / Description</th>
+              <th class="has-text-center">Qty</th>
+              <th class="has-text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="previewTableBody" class="mono-font is-size-7">
+            <!-- Dynamic Items -->
+          </tbody>
+          <tfoot class="is-size-7">
+            <tr>
+              <th class="has-text-right" colspan="2">Total: <span id="previewTotalUnits"></span></th>
+              <th class="has-text-right" id="previewTotalAmount"></th>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- Footer -->
+        <div class="has-text-centered pt-4 border-top mt-5">
+          <p class="is-size-6 has-text-grey">Thank you for shopping with us!</p>
+          <p class="is-size-7 has-text-grey-light">Computer generated invoice.</p>
+        </div>
+
+        <button onclick="generatePDF()" class="button is-primary is-fullwidth mt-5"><span class="icon"><span class="fa fa-download"></span></span><span>Download invoice</span></button>
+
+      </div>
+    </div>
+  </section>
+
+  <script src="/script.js"></script>
+</body>
+
+</html>
