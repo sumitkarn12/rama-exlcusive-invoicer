@@ -49,6 +49,7 @@ searchInvoiceEL.addEventListener( "submit", async el => {
 
 function updateSearchHistory() {
   let savedHistory = JSON.parse(localStorage.getItem("HISTORY"));
+  if ( !savedHistory ) return;
   savedHistory.forEach( h => searchHistory.add( h ) );
   let btns = document.querySelector("#search-history");
   btns.innerHTML = "";
@@ -210,9 +211,18 @@ function generatePDF() {
   doc.text(`Grand Total: Rs. ${rupees.format(grandTotal)}`, pageW-20, pageY, { align: 'right' });
   pageY += 20;
   doc.text(`Thank you for shopping with us!`, pageW/2, pageY, { align: 'center' });
+  const qrimageurl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent("https://re-bill.netlify.app/#"+invoice.invoice.id)}`
+  const qrimage = new Image();
+  qrimage.crossOrigin = "Anonymous"; 
+  qrimage.onload = function() {
+    doc.addImage(this, "JPEG", margin, pageY-34, 30, 30);
+    doc.save(`Invoice_${invoice.invoice.id}.pdf`);
+  };
 
-  doc.save(`Invoice_${invoice.invoice.id}.pdf`);
-
+  qrimage.onerror = function() {
+    doc.save(`Invoice_${invoice.invoice.id}.pdf`);
+  };
+  qrimage.src = qrimageurl
 }
 
 updateSearchHistory();
