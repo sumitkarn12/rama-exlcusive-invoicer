@@ -31,7 +31,7 @@ searchInvoiceEL.addEventListener( "submit", async el => {
     // location.hash = invoice_nr;
     searchHistory.add( invoice_nr );
     localStorage.setItem( "HISTORY", JSON.stringify( Array.from( searchHistory ).slice(0,20) ) );
-    updateSearchHistory();
+    updateSearchHistory( invoice_nr );
   } catch(e) {
     if ( invoice.error ) {
       searchHistory.delete( invoice_nr );
@@ -47,7 +47,7 @@ searchInvoiceEL.addEventListener( "submit", async el => {
   }
 });
 
-function updateSearchHistory() {
+function updateSearchHistory(c) {
   let savedHistory = JSON.parse(localStorage.getItem("HISTORY"));
   if ( !savedHistory ) return;
   savedHistory.forEach( h => searchHistory.add( h ) );
@@ -56,7 +56,7 @@ function updateSearchHistory() {
   savedHistory.forEach( h => {
     let b = document.createElement( "button" );
     b.classList.add("button", "is-rounded");
-    if ( location.hash.substring(1) ==h )
+    if ( c == h )
       b.classList.add("is-primary")
     b.innerText = h;
     b.onclick = e => {
