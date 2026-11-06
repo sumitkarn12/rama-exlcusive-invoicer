@@ -89,23 +89,22 @@
         <div class="has-text-centered border-bottom pb-4 mb-4">
           <h2 class="title is-4 mb-1 uppercase" id="previewStoreName"></h2>
           <p class="is-size-7 has-text-grey" id="previewStoreAddress"></p>
-          <p class="is-size-7 has-text-grey">Phone: <span id="previewStorePhone"></span></p>
-          <p class="is-size-7 has-text-grey">Email: <span id="previewStoreEmail"></span></p>
           <p class="is-size-7 has-text-grey">GSTIN: <span id="previewStoreGstin"></span></p>
+          <p class="is-size-7 has-text-grey"><span id="previewStorePhone"></span>, <span id="previewStoreEmail"></span></p>
         </div>
 
         <!-- Invoice Info Block -->
         <div class="columns is-mobile is-vcentered mb-3 border-bottom pb-3">
           <div class="column">
             <p class="is-size-7">
-              <strong>Invoice:</strong>
+              <i class="fa-solid fa-fingerprint"></i>
               <span id="previewInvoiceId" class="mono-font"></span>
             </p>
-            <p class="is-size-7"><strong>Date:</strong> <span id="previewInvoiceDate"></span></p>
+            <p class="is-size-7"><i class="fa-solid fa-calendar"></i> <span id="previewInvoiceDate"></span></p>
           </div>
           <div class="column has-text-right">
-            <p class="is-size-7"><strong>Customer:</strong> <span id="previewCustName"></span></p>
-            <p class="is-size-7"><strong>Phone:</strong> <span id="previewCustPhone"></span></p>
+            <p class="is-size-7"><i class="fa-solid fa-id-card"></i> <span id="previewCustName"></span></p>
+            <p class="is-size-7"><i class="fa-solid fa-address-book"></i> <span id="previewCustContact"></span></p>
           </div>
         </div>
 
@@ -129,6 +128,10 @@
           </tfoot>
         </table>
 
+        <div class="box">
+          <p id="amount-in-words" class="is-size-7"></p>
+        </div>
+
         <!-- Footer -->
         <div class="has-text-centered pt-4 border-top mt-5">
           <p class="is-size-6 has-text-grey">Thank you for shopping with us!</p>
@@ -137,10 +140,10 @@
 
         <div class="grid mt-5">
           <div class="cell" id="share-btn">
-            <button class="button is-fullwidth"><span class="icon"><span class="fa fa-share"></span></span><span>Share invoice</span></button>
+            <button class="button is-fullwidth is-small"><span class="icon"><span class="fa fa-share"></span></span><span>Share invoice</span></button>
           </div>
           <div class="cell">
-            <button onclick="generatePDF()" class="button is-primary is-fullwidth"><span class="icon"><span class="fa fa-download"></span></span><span>Download</span></button>
+            <button onclick="generatePDF()" class="button is-primary is-fullwidth is-small"><span class="icon"><span class="fa fa-download"></span></span><span>Download</span></button>
           </div>
         </div>
 
@@ -149,6 +152,7 @@
     </div>
   </section>
 
+  <script src="/number-to-words.js"></script>
   <script src="/script.js"></script>
 </body>
 

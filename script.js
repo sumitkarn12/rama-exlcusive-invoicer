@@ -67,24 +67,39 @@ function updateSearchHistory() {
   });
 }
 
+function maskPhone( phone ) {
+  if ( !phone ) return null;
+  return phone.split("").slice(-4).join("").padStart(10, "X");
+}
+
+function maskEmail( email ) {
+  if ( !email ) return null;
+  let splits = email.split("@");
+  splits[0] = splits[0].split("").slice(0,3).join("").padEnd(splits[0].length, "X")
+  return splits.join("@");
+}
+
 function updatePreview() {
+  invoice.invoice.at = invoice.items[0].created_at;
+  invoice.invoice.phone = maskPhone(invoice.invoice.phone)
+  invoice.invoice.email = maskEmail(invoice.invoice.email)
+
+  totalQty = 0;
+  grandTotal = 0;
+  invoice.items = invoice.items.sort( (a,b) => b.amount - a.amount );
+
   document.getElementById('previewStoreName').innerText = invoice.store.name;
   document.getElementById('previewStoreAddress').innerText = invoice.store.address+", "+invoice.store.city;
+
   document.getElementById('previewStorePhone').innerText = invoice.store.phone;
   document.getElementById('previewStoreEmail').innerText = invoice.store.email;
   document.getElementById('previewStoreGstin').innerText = invoice.store.gstin;
   document.getElementById('previewInvoiceId').innerText = invoice.invoice.id;
   document.getElementById('previewInvoiceDate').innerText = readableDate.format(new Date(invoice.items[0].created_at));
   document.getElementById('previewCustName').innerText = invoice.invoice.name;
-  document.getElementById('previewCustPhone').innerText = invoice.invoice.phone;
+  document.getElementById('previewCustContact').innerText = [invoice.invoice.phone, invoice.invoice.email].filter(a => a).join(", ");
 
   let previewTableHTML = '';
-
-  totalQty = 0;
-  grandTotal = 0;
-
-  invoice.items = invoice.items.sort( (a,b) => b.amount - a.amount );
-  invoice.invoice.at = invoice.items[0].created_at;
 
   invoice.items.forEach((item, index) => {
     totalQty += Number(item.qty);
@@ -102,6 +117,8 @@ function updatePreview() {
   document.getElementById('previewTableBody').innerHTML = previewTableHTML;
   document.getElementById('previewTotalUnits').innerText = `${totalQty} unit`;
   document.getElementById('previewTotalAmount').innerText = `₹${rupees.format(grandTotal)}`;
+  let amountInText = getNumberInWords(grandTotal);
+  document.getElementById('amount-in-words').innerText = amountInText[0].toUpperCase()+amountInText.substring(1).toLowerCase()+" only";
   previewEL.classList.remove("is-hidden");
 }
 
@@ -117,8 +134,6 @@ function generatePDF() {
   const pageH = doc.internal.pageSize.getHeight();
   let pageY = 0;
   let margin = 14;
-
-  console.log( "PageW", pageW, "PageH", pageH );
 
   doc.setFillColor(60, 74, 250);
   doc.rect(0, 0, pageW, 42, 'F');
@@ -196,7 +211,7 @@ function generatePDF() {
   });
 
   pageY = doc.lastAutoTable.finalY + 8;
-  let totalFooterBlockH = 38;
+  let totalFooterBlockH = 48;
 
   if ( pageY+totalFooterBlockH >= pageH ) {
     doc.addPage("a4", "p");
@@ -210,7 +225,13 @@ function generatePDF() {
   doc.text(`Total Units: ${totalQty}`, pageW-20, pageY, { align: 'right' });
   pageY += 6;
   doc.text(`Grand Total: Rs. ${rupees.format(grandTotal)}`, pageW-20, pageY, { align: 'right' });
-  pageY += 20;
+  pageY += 12;
+  let amountInText = getNumberInWords(grandTotal);
+  amountInText = amountInText[0].toUpperCase()+amountInText.substring(1).toLowerCase()+" only";
+  doc.text(amountInText, pageW-margin, pageY, { align: 'right' });
+  pageY += 10;
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
   doc.text(`Thank you for shopping with us!`, pageW/2, pageY, { align: 'center' });
   const qrimageurl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent("https://re-bill.netlify.app/#"+invoice.invoice.id)}`
   const qrimage = new Image();
@@ -240,7 +261,7 @@ if ( navigator.share && navigator.canShare ) {
   shareButton.querySelector("button").addEventListener('click', async () => {
     const shareData = {
       title: 'Your invoice for purchase at '+invoice.store.name,
-      text: `Get your invoice for the purchase done at ${invoice.store.name} on ${readableDate.format(new Date(invoice.invoice.at))} of Rs. ${grandTotal}.`,
+      text: `Get your invoice for the purchase done at ${invoice.store.name} on ${readableDate.format(new Date(invoice.invoice.at))} of Rs. ${rupees.format(grandTotal)}.`,
       url: `https://re-bill.netlify.app/#${invoice.invoice.id}`
     };
     await navigator.share(shareData);
