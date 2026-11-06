@@ -46,7 +46,7 @@
   <section class="section py-5" id="main">
     <div class="container">
       <!-- Search invoice -->
-      <div class="card mb-4">
+      <div class="card">
         <header class="card-header">
           <p class="card-header-title py-3">
             <span class="icon has-text-link mr-2"><i class="fa-solid fa-store"></i></span>
@@ -63,13 +63,24 @@
             <button class="button is-small is-link">Get invoice</button>
           </form>
 
-          <div class="container mt-5">
-            <!-- Invoice search history -->
-            <div class="buttons are-small" id="search-history"></div>
-          </div>
         </div>
+      </div>
 
-
+      <div class="card recent-searches">
+        <header class="card-header">
+          <p class="card-header-title py-3">
+            <span class="icon has-text-link mr-2"><i class="fa-solid fa-clock-rotate-left"></i></span>
+            Recent searches
+          </p>
+          <input type="checkbox" id="recent-search-toggle" class="is-hidden" checked >
+          <label for="recent-search-toggle" class="card-header-icon">
+            <i class="fa-solid fa-chevron-down"></i>
+          </label>
+        </header>
+        <!-- Invoice search history -->
+        <div class="card-content">
+          <div class="buttons are-small" id="search-history"></div>
+        </div>
       </div>
 
       <div id="paperPreview" class="paper-preview p-5 is-hidden">

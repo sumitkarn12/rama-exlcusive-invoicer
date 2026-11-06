@@ -13,3 +13,7 @@ body {
 }
 
 #main > .container { max-width: 640px;}
+
+.card-header:has(#recent-search-toggle:checked) ~ .card-content {
+  display: none!important;
+}

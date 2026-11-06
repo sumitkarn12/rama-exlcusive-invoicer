@@ -3,6 +3,9 @@ const searchHistory = new Set();
 const readableDate = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
 const rupees = new Intl.NumberFormat('en-IN');
 
+let totalQty = 0;
+let grandTotal = 0;
+
 const previewEL = document.querySelector("#paperPreview");
 previewEL.classList.add("is-hidden");
 
@@ -25,12 +28,15 @@ searchInvoiceEL.addEventListener( "submit", async el => {
   try {
     updatePreview();
     previewEL.classList.remove("is-hidden");
-    location.hash = invoice_nr;
+    // location.hash = invoice_nr;
     searchHistory.add( invoice_nr );
     localStorage.setItem( "HISTORY", JSON.stringify( Array.from( searchHistory ).slice(0,20) ) );
     updateSearchHistory();
   } catch(e) {
     if ( invoice.error ) {
+      searchHistory.delete( invoice_nr );
+      localStorage.setItem( "HISTORY", JSON.stringify( Array.from( searchHistory ).slice(0,20) ) );
+      updateSearchHistory();
       alert( invoice.error );
     }
   } finally {
@@ -72,8 +78,11 @@ function updatePreview() {
   document.getElementById('previewCustPhone').innerText = invoice.invoice.phone;
 
   let previewTableHTML = '';
-  let totalQty = 0;
-  let grandTotal = 0;
+
+  totalQty = 0;
+  grandTotal = 0;
+
+  invoice.items = invoice.items.sort( (a,b) => b.amount - a.amount );
 
   invoice.items.forEach((item, index) => {
     totalQty += Number(item.qty);
@@ -97,99 +106,112 @@ function updatePreview() {
 function generatePDF() {
   const { jsPDF } = window.jspdf;
 
-  let totalQty = 0;
-  let grandTotal = 0;
-  invoice.items.forEach(i => {
-    totalQty += Number(i.qty);
-    grandTotal += Number(i.amount);
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  let pageY = 0;
+  let margin = 14;
+
+  console.log( "PageW", pageW, "PageH", pageH );
+
+  doc.setFillColor(60, 74, 250);
+  doc.rect(0, 0, pageW, 42, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  pageY = 18
+  doc.text(invoice.store.name.toUpperCase(), margin, pageY);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(211, 211, 211);
+  pageY += 4;
+  doc.text(invoice.store.address+", "+invoice.store.city, margin, pageY);
+  pageY += 4;
+  doc.text(`GSTIN: ${invoice.store.gstin}`, margin, pageY);
+  pageY += 4;
+  doc.text(`Phone: ${invoice.store.phone} | Email: ${invoice.store.email}`, margin, pageY);
+
+  pageY += 6;
+  doc.setFillColor(245, 247, 250);
+  doc.roundedRect(margin, pageY, pageW - (margin*2), 12, 2, 2, 'F');
+
+  pageY += 7;
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(60, 60, 60);
+  doc.text(readableDate.format(new Date(invoice.items[0].created_at) ), (margin+4), pageY);
+  doc.text(invoice.invoice.id, pageW-(margin+4), pageY, { align: 'right' });
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+
+  pageY += 10
+  doc.setFillColor(245, 247, 250);
+  doc.roundedRect(margin, pageY, pageW - (margin*2), 18, 2, 2, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(40, 40, 40);
+  pageY += 8;
+  doc.text(invoice.invoice.name, margin+4, pageY);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(80, 80, 80);
+  pageY += 4;
+  let csContact = [];
+  if ( invoice.invoice.phone ) csContact.push(`Phone: ${invoice.invoice.phone}`)
+  if ( invoice.invoice.email ) csContact.push(`Email: ${invoice.invoice.email}`)
+  doc.text(csContact.join(" | "), margin+4, pageY);
+
+  const tableRows = invoice.items.map((item, index) => [
+    index + 1,
+    item.article_no,
+    item.variant,
+    item.qty,
+    `Rs. ${rupees.format(item.mrp)}`,
+    `Rs. ${rupees.format(item.amount)}`
+  ]);
+
+  pageY += 10;
+  doc.autoTable({
+    startY: pageY,
+    head: [['#', 'Article', 'Variant', 'Qty', 'MRP', 'Amount']],
+    body: tableRows,
+    theme: 'striped',
+    headStyles: { halign: 'center', fillColor: [32, 156, 238], textColor: 255, fontStyle: 'bold' },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 10 },
+      3: { halign: 'center' },
+      4: { halign: 'center' },
+      5: { halign: 'center' }
+    },
+    theme: 'grid'
   });
 
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
+  pageY = doc.lastAutoTable.finalY + 8;
+  let totalFooterBlockH = 38;
 
-    doc.setFillColor(32, 156, 238); // Bulma Link Primary
-    doc.rect(0, 0, 210, 28, 'F');
+  if ( pageY+totalFooterBlockH >= pageH ) {
+    doc.addPage("a4", "p");
+    pageY = margin;
+  }
 
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text(invoice.store.name.toUpperCase(), 14, 18);
+  doc.setFont('helvetica', 'bold');
+  doc.setFillColor(245, 247, 250);
+  doc.roundedRect(140, pageY, pageW-140-margin, 20, 2, 2, 'F');
+  pageY += 8;
+  doc.text(`Total Units: ${totalQty}`, pageW-20, pageY, { align: 'right' });
+  pageY += 6;
+  doc.text(`Grand Total: Rs. ${rupees.format(grandTotal)}`, pageW-20, pageY, { align: 'right' });
+  pageY += 20;
+  doc.text(`Thank you for shopping with us!`, pageW/2, pageY, { align: 'center' });
 
-    doc.setFontSize(10);
-    doc.text("INVOICE", 196, 18, { align: 'right' });
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(211, 211, 211);
-
-    doc.text(`Date: ${readableDate.format(new Date(invoice.items[0].created_at) )}`, 196, 22, { align: 'right' });
-
-    doc.text(invoice.store.address+", "+invoice.store.city, 14, 22);
-    doc.setTextColor(60, 60, 60);
-    doc.text(`Phone: ${invoice.store.phone}`, 14, 38);
-    doc.text(`Email: ${invoice.store.email}`, 14, 44);
-
-    doc.text(`Invoice ID: ${invoice.invoice.id}`, 196, 38, { align: 'right' });
-    doc.text(`GSTIN: ${invoice.store.gstin}`, 196, 44, { align: 'right' });
-
-    doc.setDrawColor(220, 220, 220);
-    doc.line(14, 50, 196, 50);
-
-    doc.setFillColor(245, 247, 250);
-    doc.roundedRect(14, 55, 182, 22, 2, 2, 'F');
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(120, 120, 120);
-    doc.text("BILLED TO CUSTOMER:", 18, 62);
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(40, 40, 40);
-    doc.text(invoice.invoice.name, 18, 68);
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(80, 80, 80);
-    doc.text(`Phone: ${invoice.invoice.phone}    Email: ${invoice.invoice.email || "NA"}`, 18, 73);
-
-    const tableRows = invoice.items.map((item, index) => [
-      index + 1,
-      item.article == '' ? `Product`: item.article_no,
-      item.variant,
-      item.qty,
-      `Rs. ${rupees.format(item.mrp)}`,
-      `Rs. ${rupees.format(item.amount)}`
-    ]);
-
-    doc.autoTable({
-      startY: 83,
-      head: [['#', 'Article', 'Variant', 'Qty', 'MRP', 'Amount']],
-      body: tableRows,
-      theme: 'striped',
-      headStyles: { halign: 'center', fillColor: [32, 156, 238], textColor: 255, fontStyle: 'bold' },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 10 },
-        3: { halign: 'center' },
-        4: { halign: 'center' },
-        5: { halign: 'center' }
-      }
-    });
-
-    const finalY = doc.lastAutoTable.finalY + 8;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setFillColor(245, 247, 250);
-    doc.roundedRect(140, finalY, doc.internal.pageSize.getWidth()-140-14, 20, 2, 2, 'F');
-    doc.text(`Total Units: ${totalQty}`, doc.internal.pageSize.getWidth()-20, finalY+8, { align: 'right' });
-    doc.text(`Grand Total: Rs. ${rupees.format(grandTotal)}`, doc.internal.pageSize.getWidth()-20, finalY+14, { align: 'right' });
-
-    doc.text(`Thank you for shopping with us!`, doc.internal.pageSize.getWidth()/2, finalY+34, { align: 'center' });
-
-    doc.save(`Invoice_${invoice.invoice.id}.pdf`);
+  doc.save(`Invoice_${invoice.invoice.id}.pdf`);
 
 }
 
