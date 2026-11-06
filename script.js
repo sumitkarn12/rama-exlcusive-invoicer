@@ -22,23 +22,24 @@ searchInvoiceEL.addEventListener( "submit", async el => {
     invoice = await fetch( url ).then( res => res.json() )
     sessionStorage.setItem(invoice_nr, JSON.stringify( invoice ))
   }
-  try { updatePreview(); } catch(e) {}
-  setTimeout( () => {
-    el.target.querySelector("button").classList.remove("is-loading");
-    el.target.querySelectorAll("button,input").forEach( e => {
-      e.removeAttribute("disabled");
-    });
+  try {
+    updatePreview();
     previewEL.classList.remove("is-hidden");
     location.hash = invoice_nr;
     searchHistory.add( invoice_nr );
     localStorage.setItem( "HISTORY", JSON.stringify( Array.from( searchHistory ).slice(0,20) ) );
     updateSearchHistory();
-  }, 300);
+  } catch(e) {
+    if ( invoice.error ) {
+      alert( invoice.error );
+    }
+  } finally {
+    el.target.querySelector("button").classList.remove("is-loading");
+    el.target.querySelectorAll("button,input").forEach( e => {
+      e.removeAttribute("disabled");
+    });
+  }
 });
-
-window.addEventListener("hashchange", ev => {
-  searchInvoiceEL.querySelector("input").value = location.hash.substring(1);
-})
 
 function updateSearchHistory() {
   let savedHistory = JSON.parse(localStorage.getItem("HISTORY"));
@@ -70,7 +71,6 @@ function updatePreview() {
   document.getElementById('previewCustName').innerText = invoice.invoice.name;
   document.getElementById('previewCustPhone').innerText = invoice.invoice.phone;
 
-  let editTableHTML = '';
   let previewTableHTML = '';
   let totalQty = 0;
   let grandTotal = 0;
@@ -91,6 +91,7 @@ function updatePreview() {
   document.getElementById('previewTableBody').innerHTML = previewTableHTML;
   document.getElementById('previewTotalUnits').innerText = `${totalQty} unit`;
   document.getElementById('previewTotalAmount').innerText = `₹${rupees.format(grandTotal)}`;
+  previewEL.classList.remove("is-hidden");
 }
 
 function generatePDF() {
@@ -194,7 +195,9 @@ function generatePDF() {
 
 updateSearchHistory();
 
-if ( location.hash.substring(1) ) {
-  searchInvoiceEL.querySelector("input").value = location.hash.substring(1);
-  searchInvoiceEL.requestSubmit();
-}
+setTimeout( () => {
+  if ( location.hash.substring(1) ) {
+    searchInvoiceEL.querySelector("input").value = location.hash.substring(1);
+    searchInvoiceEL.requestSubmit();
+  }
+}, 1000);
