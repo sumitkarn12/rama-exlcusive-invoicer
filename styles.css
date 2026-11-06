@@ -1,0 +1,15 @@
+body {
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+.mono-font {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.paper-preview {
+  border-radius: 8px;
+  border: 1px solid #dcebff;
+}
+
+#main > .container { max-width: 640px;}
