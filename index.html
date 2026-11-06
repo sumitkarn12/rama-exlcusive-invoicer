@@ -135,7 +135,15 @@
           <p class="is-size-7 has-text-grey-light">Computer generated invoice.</p>
         </div>
 
-        <button onclick="generatePDF()" class="button is-primary is-fullwidth mt-5"><span class="icon"><span class="fa fa-download"></span></span><span>Download invoice</span></button>
+        <div class="grid mt-5">
+          <div class="cell" id="share-btn">
+            <button class="button is-fullwidth"><span class="icon"><span class="fa fa-share"></span></span><span>Share invoice</span></button>
+          </div>
+          <div class="cell">
+            <button onclick="generatePDF()" class="button is-primary is-fullwidth"><span class="icon"><span class="fa fa-download"></span></span><span>Download</span></button>
+          </div>
+        </div>
+
 
       </div>
     </div>

@@ -84,6 +84,7 @@ function updatePreview() {
   grandTotal = 0;
 
   invoice.items = invoice.items.sort( (a,b) => b.amount - a.amount );
+  invoice.invoice.at = invoice.items[0].created_at;
 
   invoice.items.forEach((item, index) => {
     totalQty += Number(item.qty);
@@ -233,3 +234,17 @@ setTimeout( () => {
     searchInvoiceEL.requestSubmit();
   }
 }, 1000);
+
+const shareButton = document.querySelector('#share-btn');
+if ( navigator.share && navigator.canShare ) {
+  shareButton.querySelector("button").addEventListener('click', async () => {
+    const shareData = {
+      title: 'Your invoice for purchase at '+invoice.store.name,
+      text: `Get your invoice for the purchase done at ${invoice.store.name} on ${readableDate.format(new Date(invoice.invoice.at))} of Rs. ${grandTotal}.`,
+      url: `https://re-bill.netlify.app/#${invoice.invoice.id}`
+    };
+    await navigator.share(shareData);
+  });
+} else {
+  shareButton.classList.add("is-hidden")
+}
