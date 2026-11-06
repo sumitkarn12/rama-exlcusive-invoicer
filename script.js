@@ -193,3 +193,8 @@ function generatePDF() {
 }
 
 updateSearchHistory();
+
+if ( location.hash.substring(1) ) {
+  searchInvoiceEL.querySelector("input").value = location.hash.substring(1);
+  searchInvoiceEL.requestSubmit();
+}
